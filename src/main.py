@@ -8,7 +8,7 @@ import yaml
 
 from cargo_index import CargoRepository
 from config import load_config
-from graph import TestRepository, build_graph
+from graph import TestRepository, build_graph, load_order
 
 
 def display(config, mode):
@@ -26,6 +26,10 @@ def display(config, mode):
                 print(dep)
         return
     graph = build_graph(repo, config.package, config.exclude)
+    if mode == "order":
+        for node in load_order(graph):
+            print(node)
+        return
     for node, children in graph.edges.items():
         print(f"{node}: {', '.join(map(str, children))}")
     for source, target in graph.cycles:
@@ -36,7 +40,8 @@ def main(argv=None):
     """Validate the configuration and print the requested result."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("config", help="YAML config path")
-    parser.add_argument("--mode", choices=("config", "direct", "graph"),
+    modes = ("config", "direct", "graph", "order")
+    parser.add_argument("--mode", choices=modes,
                         default="graph")
     args = parser.parse_args(argv)
     try:

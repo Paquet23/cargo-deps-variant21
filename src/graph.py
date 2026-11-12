@@ -73,3 +73,25 @@ def build_graph(repo, name, exclude):
     if not exclude or exclude not in root.name:
         visit(root)
     return graph
+
+
+def load_order(graph):
+    """Return a DFS postorder, with each dependency before its dependent."""
+    if graph.cycles:
+        source, target = graph.cycles[0]
+        raise ValueError(f"no load order: cycle edge {source} -> {target}")
+    seen = set()
+    result = []
+
+    def visit(node):
+        """Append a package after its dependencies."""
+        if node in seen:
+            return
+        seen.add(node)
+        for child in graph.edges[node]:
+            visit(child)
+        result.append(node)
+
+    for node in graph.edges:
+        visit(node)
+    return result
