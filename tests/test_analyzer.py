@@ -18,13 +18,13 @@ from plantuml import render
 class AnalyzerTests(unittest.TestCase):
     """Проверяем обход на небольших графах с известным результатом."""
 
-    def setUp(self):
+    def make_repo(self):
         """Загружаем тот же тестовый граф, что и в примерах запуска."""
-        self.repo = TestRepository(ROOT / "examples/test-repo.yaml")
+        return TestRepository(ROOT / "examples/test-repo.yaml")
 
     def test_diamond_and_order(self):
         """Общая зависимость встречается один раз, раньше обоих пакетов."""
-        graph = build_graph(self.repo, "A", "")
+        graph = build_graph(self.make_repo(), "A", "")
         self.assertEqual(len(graph.edges), 5)
         self.assertFalse(graph.cycles)
         self.assertEqual(list(map(str, load_order(graph))),
@@ -32,14 +32,14 @@ class AnalyzerTests(unittest.TestCase):
 
     def test_filter_prunes_branch(self):
         """Фильтр убирает ветвь, но общий потомок доступен по другому пути."""
-        graph = build_graph(self.repo, "A", "C")
+        graph = build_graph(self.make_repo(), "A", "C")
         self.assertEqual(set(map(str, graph.edges)), {"A", "B", "D"})
-        self.assertFalse(build_graph(self.repo, "A", "A").edges)
+        self.assertFalse(build_graph(self.make_repo(), "A", "A").edges)
 
     def test_cycles(self):
         """Цикл виден на диаграмме, а порядок загрузки для него невозможен."""
         for root in ("F", "J"):
-            graph = build_graph(self.repo, root, "")
+            graph = build_graph(self.make_repo(), root, "")
             self.assertEqual(len(graph.cycles), 1)
             self.assertIn("-[#red]->", render(graph))
             with self.assertRaisesRegex(ValueError, "no load order"):

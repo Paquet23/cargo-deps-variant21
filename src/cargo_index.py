@@ -18,12 +18,15 @@ class Package:
         return f"{self.name}@{self.version}" if self.version else self.name
 
 
+SHARD_NAME_LENGTH = 3
+
+
 def index_path(name):
     """Собираем путь к записи пакета по правилам индекса Cargo."""
     name = name.lower()
-    if len(name) < 3:
+    if len(name) < SHARD_NAME_LENGTH:
         return f"{len(name)}/{name}"
-    if len(name) == 3:
+    if len(name) == SHARD_NAME_LENGTH:
         return f"3/{name[0]}/{name}"
     return f"{name[:2]}/{name[2:4]}/{name}"
 

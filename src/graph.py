@@ -56,12 +56,11 @@ def build_graph(repo, name, exclude):
     active = set()
 
     def visit(node):
-        """Раскрываем пакет один раз. Переход к предку замыкает цикл."""
+        """Проверяем циклы по пакетам в текущей цепочке вызовов."""
         active.add(node)
         children = repo.dependencies(node, exclude)
         graph.edges[node] = children
         for child in children:
-            # В active только пакеты из текущей цепочки вызовов.
             if child in active:
                 graph.cycles.append((node, child))
             elif child not in graph.edges:
@@ -91,7 +90,6 @@ def load_order(graph):
         seen.add(node)
         for child in graph.edges[node]:
             visit(child)
-        # К этому моменту все зависимости уже добавлены в результат.
         result.append(node)
 
     for node in graph.edges:

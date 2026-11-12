@@ -12,6 +12,23 @@ from graph import TestRepository, build_graph, load_order
 from plantuml import render
 
 
+def display_graph(graph):
+    """Печатаем зависимости каждого пакета и отдельно сообщаем о циклах."""
+    for node, children in graph.edges.items():
+        print(f"{node}: {', '.join(map(str, children))}")
+    for source, target in graph.cycles:
+        print(f"Cycle edge: {source} -> {target}", file=sys.stderr)
+
+
+def display_direct(repo, config):
+    """Показываем прямые зависимости, если пакет проходит фильтр."""
+    if config.exclude and config.exclude in config.package:
+        return
+    root = repo.resolve(config.package)
+    for dep in repo.dependencies(root, config.exclude):
+        print(dep)
+
+
 def display(config, mode):
     """Выбираем, что показать по заданным настройкам и режиму."""
     if mode == "config":
@@ -21,10 +38,7 @@ def display(config, mode):
     repo_type = TestRepository if config.test_mode else CargoRepository
     repo = repo_type(config.repository)
     if mode == "direct":
-        if not config.exclude or config.exclude not in config.package:
-            root = repo.resolve(config.package)
-            for dep in repo.dependencies(root, config.exclude):
-                print(dep)
+        display_direct(repo, config)
         return
     graph = build_graph(repo, config.package, config.exclude)
     if mode == "order":
@@ -34,10 +48,7 @@ def display(config, mode):
     if mode == "plantuml":
         print(render(graph))
         return
-    for node, children in graph.edges.items():
-        print(f"{node}: {', '.join(map(str, children))}")
-    for source, target in graph.cycles:
-        print(f"Cycle edge: {source} -> {target}", file=sys.stderr)
+    display_graph(graph)
 
 
 def main(argv=None):
