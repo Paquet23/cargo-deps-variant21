@@ -1,0 +1,4 @@
+package: quote
+repository: https://index.crates.io
+test_mode: false
+exclude: ""
