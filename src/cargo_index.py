@@ -1,4 +1,4 @@
-"""Read Cargo's sparse JSON-lines index over HTTP."""
+"""Читаем индекс Cargo по HTTP. Каждая строка индекса описывает релиз."""
 
 from dataclasses import dataclass
 import json
@@ -8,18 +8,18 @@ from urllib.request import urlopen
 
 @dataclass(frozen=True, order=True)
 class Package:
-    """A resolved package version."""
+    """Имя пакета и выбранная версия."""
 
     name: str
     version: str = ""
 
     def __str__(self):
-        """Print versions only for registry packages."""
+        """Для тестового пакета достаточно имени, у него нет версии."""
         return f"{self.name}@{self.version}" if self.version else self.name
 
 
 def index_path(name):
-    """Return the index path specified by Cargo's sparse protocol."""
+    """Собираем путь к записи пакета по правилам индекса Cargo."""
     name = name.lower()
     if len(name) < 3:
         return f"{len(name)}/{name}"
@@ -29,7 +29,7 @@ def index_path(name):
 
 
 def stable_version(value):
-    """Parse a stable version and discard build metadata."""
+    """Разбираем стабильную версию и отбрасываем метаданные сборки."""
     raw = value.split("+", 1)[0]
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", raw):
         return None
@@ -37,13 +37,13 @@ def stable_version(value):
 
 
 def caret_limit(parts):
-    """Return the exclusive upper bound of a caret requirement."""
+    """Находим первую версию за пределами диапазона с ^."""
     first = next((i for i, n in enumerate(parts) if n), len(parts) - 1)
     return tuple(parts[:first]) + (parts[first] + 1,) + (0,) * (2 - first)
 
 
 def matches_clause(version, clause):
-    """Match one stable-version comparator in Cargo syntax."""
+    """Проверяем версию по одному условию из Cargo."""
     if clause in {"*", "x", "X"}:
         return True
     match = re.fullmatch(
@@ -68,15 +68,15 @@ def matches_clause(version, clause):
 
 
 class CargoRepository:
-    """Read stable non-yanked releases and their mandatory dependencies."""
+    """Читаем стабильные релизы и их обязательные зависимости."""
 
     def __init__(self, url):
-        """Cache index entries within one invocation."""
+        """Храним загруженные записи до конца запуска программы."""
         self.url = url
         self.cache = {}
 
     def records(self, name):
-        """Download a crate's newline-delimited index once."""
+        """Читаем по одной записи JSON на строку и сохраняем их в кэше."""
         name = name.lower()
         if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", name):
             raise ValueError(f"invalid crate name: {name}")
@@ -87,7 +87,7 @@ class CargoRepository:
         return self.cache[name]
 
     def resolve(self, name, requirement="*"):
-        """Choose the newest stable version satisfying the requirement."""
+        """Выбираем самый новый подходящий релиз среди неотозванных."""
         clauses = [part.strip() for part in requirement.split(",")]
         eligible = []
         for row in self.records(name):
@@ -101,7 +101,7 @@ class CargoRepository:
         return Package(name.lower(), max(eligible)[1])
 
     def dependencies(self, package, exclude=""):
-        """Resolve required normal and build dependencies of one release."""
+        """Собираем обязательные зависимости для работы и сборки пакета."""
         row = next(row for row in self.records(package.name)
                    if row["vers"] == package.version)
         result = set()

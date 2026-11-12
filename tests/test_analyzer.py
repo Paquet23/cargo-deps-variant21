@@ -1,4 +1,4 @@
-"""Checks for configuration, version matching, graph and output."""
+"""Проверяем настройки, выбор версий, обход графа и вывод."""
 
 from pathlib import Path
 import subprocess
@@ -16,14 +16,14 @@ from plantuml import render
 
 
 class AnalyzerTests(unittest.TestCase):
-    """Exercise representative dependency graphs."""
+    """Проверяем обход на небольших графах с известным результатом."""
 
     def setUp(self):
-        """Load the repository used by the examples."""
+        """Загружаем тот же тестовый граф, что и в примерах запуска."""
         self.repo = TestRepository(ROOT / "examples/test-repo.yaml")
 
     def test_diamond_and_order(self):
-        """A shared dependency is visited once and precedes both parents."""
+        """Общая зависимость встречается один раз, раньше обоих пакетов."""
         graph = build_graph(self.repo, "A", "")
         self.assertEqual(len(graph.edges), 5)
         self.assertFalse(graph.cycles)
@@ -31,13 +31,13 @@ class AnalyzerTests(unittest.TestCase):
                          ["D", "B", "E", "C", "A"])
 
     def test_filter_prunes_branch(self):
-        """Filtering a node removes its branch unless otherwise reachable."""
+        """Фильтр убирает ветвь, но общий потомок доступен по другому пути."""
         graph = build_graph(self.repo, "A", "C")
         self.assertEqual(set(map(str, graph.edges)), {"A", "B", "D"})
         self.assertFalse(build_graph(self.repo, "A", "A").edges)
 
     def test_cycles(self):
-        """Back edges stay visible but a cyclic graph has no load order."""
+        """Цикл виден на диаграмме, а порядок загрузки для него невозможен."""
         for root in ("F", "J"):
             graph = build_graph(self.repo, root, "")
             self.assertEqual(len(graph.cycles), 1)
@@ -46,7 +46,7 @@ class AnalyzerTests(unittest.TestCase):
                 load_order(graph)
 
     def test_leaf_and_cli(self):
-        """The default CLI emits a diagram for a leaf."""
+        """По умолчанию программа рисует даже пакет без зависимостей."""
         result = subprocess.run(
             [sys.executable, "src/main.py", "examples/leaf.yaml"],
             cwd=ROOT, capture_output=True, text=True, check=True)
@@ -55,7 +55,7 @@ class AnalyzerTests(unittest.TestCase):
         self.assertNotIn("-->", result.stdout)
 
     def test_config_errors(self):
-        """Each malformed setting is reported before analysis starts."""
+        """Ошибочные настройки обнаруживаются до начала анализа."""
         valid = ("package: A\nrepository: test-repo.yaml\n"
                  'test_mode: true\nexclude: ""\n')
         edits = [("package: A", "package: 42", "package"),
@@ -72,7 +72,7 @@ class AnalyzerTests(unittest.TestCase):
                         load_config(path)
 
     def test_index_paths_and_constraints(self):
-        """Check sparse paths and stable Cargo version requirements."""
+        """Проверяем пути индекса и условия выбора стабильных версий."""
         self.assertEqual([index_path(n) for n in ("a", "ab", "abc", "Serde")],
                          ["1/a", "2/ab", "3/a/abc", "se/rd/serde"])
         for version, req, expected in [

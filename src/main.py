@@ -1,4 +1,4 @@
-"""Command line interface for the Cargo dependency graph."""
+"""Консольная программа для просмотра зависимостей Cargo."""
 
 import argparse
 from dataclasses import asdict
@@ -13,7 +13,7 @@ from plantuml import render
 
 
 def display(config, mode):
-    """Run the requested analysis mode."""
+    """Выбираем, что показать по заданным настройкам и режиму."""
     if mode == "config":
         for key, value in asdict(config).items():
             print(f"{key}={value}")
@@ -41,7 +41,7 @@ def display(config, mode):
 
 
 def main(argv=None):
-    """Validate the configuration and print the requested result."""
+    """Читаем аргументы, проверяем настройки и запускаем анализ."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("config", help="YAML config path")
     modes = ("config", "direct", "graph", "order", "plantuml")

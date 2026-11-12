@@ -1,7 +1,7 @@
-"""Serialize a dependency graph to PlantUML."""
+"""Преобразуем граф зависимостей в текст PlantUML."""
 
 def render(graph):
-    """Write stable aliases, package labels, edges and cycle highlights."""
+    """Даём узлам короткие имена и выделяем обратные рёбра цветом."""
     lines = ["@startuml", "!pragma layout smetana", "left to right direction"]
     aliases = {node: f"P{i}" for i, node in enumerate(graph.edges)}
     for node, alias in aliases.items():

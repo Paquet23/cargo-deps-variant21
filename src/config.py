@@ -1,4 +1,4 @@
-"""Read and validate the YAML configuration."""
+"""Читаем настройки из YAML и проверяем их перед запуском."""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,7 +10,7 @@ import yaml
 
 @dataclass(frozen=True)
 class Config:
-    """Validated settings for the selected repository."""
+    """Проверенные настройки для выбранного репозитория."""
 
     package: str
     repository: str
@@ -19,7 +19,7 @@ class Config:
 
 
 def load_config(path):
-    """Read YAML and resolve a test path relative to its config."""
+    """Читаем YAML. Путь к тестовым данным считаем от папки настроек."""
     path = Path(path)
     data = yaml.safe_load(path.read_text(encoding="utf-8-sig"))
     keys = {"package", "repository", "test_mode", "exclude"}
@@ -41,7 +41,7 @@ def load_config(path):
 
 
 def validate_source(source, config_path, test):
-    """Validate the repository address for the active mode."""
+    """В тестовом режиме ждём файл, в обычном — адрес индекса."""
     if test:
         path = (config_path.parent / source).resolve()
         if not path.is_file():
