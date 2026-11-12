@@ -1,0 +1,4 @@
+package: "J"
+repository: test-repo.yaml
+test_mode: true
+exclude: ""

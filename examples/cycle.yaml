@@ -1,0 +1,4 @@
+package: "F"
+repository: test-repo.yaml
+test_mode: true
+exclude: ""
