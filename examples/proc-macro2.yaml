@@ -1,0 +1,4 @@
+package: proc-macro2
+repository: https://index.crates.io
+test_mode: false
+exclude: ""

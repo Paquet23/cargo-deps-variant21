@@ -9,6 +9,7 @@ import yaml
 from cargo_index import CargoRepository
 from config import load_config
 from graph import TestRepository, build_graph, load_order
+from plantuml import render
 
 
 def display(config, mode):
@@ -30,6 +31,9 @@ def display(config, mode):
         for node in load_order(graph):
             print(node)
         return
+    if mode == "plantuml":
+        print(render(graph))
+        return
     for node, children in graph.edges.items():
         print(f"{node}: {', '.join(map(str, children))}")
     for source, target in graph.cycles:
@@ -40,9 +44,9 @@ def main(argv=None):
     """Validate the configuration and print the requested result."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("config", help="YAML config path")
-    modes = ("config", "direct", "graph", "order")
+    modes = ("config", "direct", "graph", "order", "plantuml")
     parser.add_argument("--mode", choices=modes,
-                        default="graph")
+                        default="plantuml")
     args = parser.parse_args(argv)
     try:
         display(load_config(args.config), args.mode)

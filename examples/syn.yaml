@@ -1,0 +1,4 @@
+package: syn
+repository: https://index.crates.io
+test_mode: false
+exclude: ""
